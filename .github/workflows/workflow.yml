@@ -1,14 +1,32 @@
-
 name: CI workflow
 
 on:
+  # List of events on which jobs are supposed to activate; push, pull_request,
+  # check_run, fork, issues, release etc
   push:
     branches: ["main"]
   pull_request:
     branches: ["main"]
 
 jobs:
-  build: 
-    runs-on: ubuntu-latest
+  # List of actions to be performed; build, test and so on
+  build:
+    runs-on: ubuntu-latest # runner is a server that performs jobs on a specific platform or OS
     container: python:3.9-slim
-  
+    # Steps are tasks made up of one or more shell commands or actions
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install dependecies
+        run: | # Actions are the procedures that can be executed within a step
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Lint with flake8
+        run: |
+          flake8 service --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 service --count --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Run unit tests with nose
+        run: nosetests -v --with-spec --spec-color --with-coverage --cover-package=app
